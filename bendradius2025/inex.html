@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Bend Trigonometry Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 500px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, select {
+            width: 80%;
+            padding: 8px;
+            margin: 10px 0;
+        }
+        canvas {
+            border: 3px solid black;
+            background: white;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Unified Bend Trigonometry Calculator</h2>
+        
+        <label>Material Type:</label>
+        <select id="materialType" onchange="updateMaterialProperties()">
+            <option value="square">Square Tubing</option>
+            <option value="pipe">Pipe</option>
+        </select><br>
+        
+        <label>Tube Size (Width x Height x Length in inches, fractions allowed):</label>
+        <input type="text" id="tubeSize" placeholder="e.g., 1.5x2.5x10"><br>
+        
+        <label>Original Rise:</label>
+        <input type="text" id="originalRise" value="8"><br>
+        
+        <label>Original Run:</label>
+        <input type="text" id="originalRun" value="10"><br>
+        
+        <button onclick="calculateHypotenuse()">Calculate Hypotenuse</button>
+        
+        <h3>Calculated Hypotenuse:</h3>
+        <p>Original Hypotenuse: <span id="originalHypotenuse">0</span></p>
+        
+        <label>Material Thickness:</label>
+        <input type="text" id="thickness" value="1.5" oninput="updateKFactor()"><br>
+        
+        <p>Auto-Calculated K-Factor: <span id="kFactor">0.4</span></p>
+        
+        <button onclick="calculateBend()">Calculate</button>
+        <button onclick="runCalculation()">Run</button>
+        
+        <h3>Results:</h3>
+        <p>New Hypotenuse: <span id="newHypotenuse">0</span></p>
+        <p>New Rise: <span id="newRise">0</span></p>
+        <p>New Angle: <span id="newAngle">0</span>°</p>
+        <p>Bend Radius: <span id="bendRadius">0</span></p>
+        
+        <canvas id="triangleCanvas" width="300" height="300"></canvas>
+        <canvas id="bendCanvas" width="300" height="300"></canvas>
+    </div>
+    
+    <script>
+        function parseFractionalInput(value) {
+            return value ? eval(value.replace(/[^0-9./]/g, '')) || 0 : 0;
+        }
+
+        function calculateHypotenuse() {
+            let originalRise = parseFractionalInput(document.getElementById("originalRise").value);
+            let originalRun = parseFractionalInput(document.getElementById("originalRun").value);
+            let originalHypotenuse = Math.sqrt(Math.pow(originalRise, 2) + Math.pow(originalRun, 2)).toFixed(2);
+            document.getElementById("originalHypotenuse").innerText = originalHypotenuse;
+        }
+
+        function calculateBend() {
+            calculateHypotenuse();
+            let originalRise = parseFractionalInput(document.getElementById("originalRise").value);
+            let originalRun = parseFractionalInput(document.getElementById("originalRun").value);
+            let thickness = parseFractionalInput(document.getElementById("thickness").value);
+            let kFactor = 0.4;
+
+            let newRise = originalRise + (kFactor * thickness);
+            let newRun = originalRun + (kFactor * thickness);
+            let newHypotenuse = Math.sqrt(Math.pow(newRise, 2) + Math.pow(newRun, 2)).toFixed(2);
+            let angleA = Math.atan(newRise / newRun) * (180 / Math.PI);
+            let bendRadius = (thickness / Math.sin(angleA * Math.PI / 180)).toFixed(2);
+
+            document.getElementById("newHypotenuse").innerText = newHypotenuse;
+            document.getElementById("newRise").innerText = newRise.toFixed(2);
+            document.getElementById("newAngle").innerText = angleA.toFixed(1);
+            document.getElementById("bendRadius").innerText = bendRadius;
+            
+            drawTriangle(newRun, newRise, angleA);
+            drawBend(bendRadius, angleA);
+        }
+
+        function drawTriangle(run, rise, angleA) {
+            let canvas = document.getElementById("triangleCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.beginPath();
+            ctx.moveTo(50, 200);
+            ctx.lineTo(150, 200);
+            ctx.lineTo(150, 200 - rise * 10);
+            ctx.closePath();
+            ctx.stroke();
+            
+            ctx.fillText("New Rise: " + rise.toFixed(2), 160, 100);
+            ctx.fillText("New Run: " + run.toFixed(2), 100, 210);
+        }
+
+        function drawBend(bendRadius, angle) {
+            let canvas = document.getElementById("bendCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.beginPath();
+            ctx.arc(150, 150, bendRadius * 10, 0, Math.PI / 2);
+            ctx.stroke();
+            
+            ctx.fillText(angle.toFixed(1) + "°", 140, 140);
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
